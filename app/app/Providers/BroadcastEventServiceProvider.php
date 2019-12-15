@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Listeners\AddUser;
+use App\QueueListeners\UserAdd;
 use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
 use Interop\Amqp\AmqpContext;
@@ -16,11 +16,7 @@ use Nuwber\Events\Queue\ContextFactory;
 
 class BroadcastEventServiceProvider extends ServiceProvider
 {
-    protected $listen = [
-        'add.user' => [
-            AddUser::class,
-        ],
-    ];
+    protected $listen = [];
 
     const DEFAULT_EXCHANGE_NAME = 'events';
 
@@ -50,7 +46,7 @@ class BroadcastEventServiceProvider extends ServiceProvider
                 $dispatcher->listen($event, $listener);
             }
         }
-
+        $dispatcher->listen(config('queue.connections.rabbitmq.queue').'*', UserAdd::class);
     }
 
     public function register()

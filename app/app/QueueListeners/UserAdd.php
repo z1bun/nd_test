@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Listeners;
+namespace App\QueueListeners;
 
 use App\User;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Interop\Amqp\AmqpTopic;
 
-class AddUser
+class UserAdd
 {
 
     /** @var int Код успешного выполнения */
@@ -24,8 +23,12 @@ class AddUser
      * @param array $data
      * @return bool|void
      */
-    public function handle($event, $data)
+    public function handle(string $event, array $data): bool
     {
+
+        Config::set('queue.connections.rabbitmq.exchange', $data['reply_to']['exchange']);
+        app()->instance(AmqpTopic::class, null);
+
         $validator = Validator::make($data, [
             'name'     => 'required|string|max:100',
             'email'    => 'required|email|max:100',
@@ -34,29 +37,22 @@ class AddUser
         ]);
 
         if ($validator->fails()) {
-             $this->publishAnswer(
-                $data['reply_to']['exchange'],
-                $data['reply_to']['queue'],
-                [
-                    'id' => null,
-                    'error_code' => static::FAIL_CODE,
-                    'error_msg' => (string)$validator->errors(),
-                ]
-            );
+            publish($data['reply_to']['queue'], [
+                'id' => null,
+                'error_code' => static::FAIL_CODE,
+                'error_msg' => (string)$validator->errors(),
+            ]);
+
             return static::FAIL_CODE;
         }
 
         $user = User::store($data['name'], $data['email'], $data['location']);
 
-        $this->publishAnswer(
-            $data['reply_to']['exchange'],
-            $data['reply_to']['queue'],
-            [
-                'id' => $user->id,
-                'error_code' => static::SUCCESS_CODE,
-                'error_msg' => '',
-            ]
-        );
+        publish($data['reply_to']['queue'], [
+            'id' => $user->id,
+            'error_code' => static::SUCCESS_CODE,
+            'error_msg' => '',
+        ]);
 
         return static::SUCCESS_CODE;
     }
@@ -68,8 +64,7 @@ class AddUser
      */
     private function publishAnswer(string $exchange, string $queue, array $data): void
     {
-        Config::set('queue.connections.rabbitmq.exchange', $exchange);
-        app()->instance(AmqpTopic::class, null);
+
 
         publish($queue, $data);
     }

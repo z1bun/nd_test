@@ -4,6 +4,9 @@ services:
     build: docker/php
     volumes:
       - ./app:/app
+    depends_on:
+      - rmq
+      - db
 
   rmq:
     build:
@@ -23,3 +26,13 @@ services:
     restart: always
     ports:
       - 8080:8080
+
+  nginx:
+    image: nginx:1.12-alpine
+    ports:
+      - 80:80
+    volumes:
+      - ./app:/app
+      - ./docker/nginx/vhost.conf:/etc/nginx/conf.d/vhost.conf
+    depends_on:
+      - app

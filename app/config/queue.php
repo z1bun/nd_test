@@ -73,7 +73,7 @@ return [
             'user'           => env('RABBITMQ_USER', 'guest'),
             'pass'           => env('RABBITMQ_PASSWORD', 'guest'),
             'vhost'          => env('RABBITMQ_VHOST', '/'),
-            'queue'          => 'add.user',
+            'queue'          => 'user.add',
             'logging'        => [
                 'enabled' => env('RABBITEVENTS_LOG_ENABLED', false),
                 'level'   => env('RABBITEVENTS_LOG_LEVEL', 'info'),
