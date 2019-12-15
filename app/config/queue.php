@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('QUEUE_CONNECTION', 'sync'),
+    'default' => env('QUEUE_CONNECTION', 'rabbitmq'),
 
     /*
     |--------------------------------------------------------------------------
@@ -64,6 +64,20 @@ return [
             'queue' => env('REDIS_QUEUE', 'default'),
             'retry_after' => 90,
             'block_for' => null,
+        ],
+
+        'rabbitmq' => [
+            'exchange'       => env('RABBITMQ_EXCHANGE', 'events'),
+            'host'           => env('RABBITMQ_HOST', 'rmq'),
+            'port'           => env('RABBITMQ_PORT', 5672),
+            'user'           => env('RABBITMQ_USER', 'guest'),
+            'pass'           => env('RABBITMQ_PASSWORD', 'guest'),
+            'vhost'          => env('RABBITMQ_VHOST', '/'),
+            'queue'          => 'add.user',
+            'logging'        => [
+                'enabled' => env('RABBITEVENTS_LOG_ENABLED', false),
+                'level'   => env('RABBITEVENTS_LOG_LEVEL', 'info'),
+            ]
         ],
 
     ],
