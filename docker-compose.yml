@@ -1,0 +1,24 @@
+version: "3"
+services:
+  app:
+    build: docker/php
+    volumes:
+      - ./app:/app
+
+  rmq:
+    build:
+      context: docker/rabbitmq
+    ports:
+      - "5672:5672"
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
